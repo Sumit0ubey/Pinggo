@@ -1,0 +1,178 @@
+<div
+    x-show="show"
+    x-transition
+    x-cloak
+    @click.self="close()"
+    class="fixed inset-0 z-50 bg-black/60
+           flex items-end sm:items-center justify-center
+           px-3 sm:px-0"
+>
+    <div
+        class="bg-gray-800
+               w-full sm:w-[420px]
+               max-h-[90vh]
+               rounded-t-2xl sm:rounded-2xl
+               p-5 sm:p-6
+               shadow-xl
+               overflow-y-auto">
+
+        <h2 class="text-base sm:text-lg font-semibold text-white mb-4">
+            Edit Group
+        </h2>
+
+        <div class="flex items-center gap-3 mb-4">
+            <img
+                :src="preview || imageUrl"
+                class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover"
+            >
+
+            <input
+                type="file"
+                @change="previewImage"
+                class="w-full text-gray-400 text-sm
+                       file:bg-gray-600 file:text-white
+                       file:border-0 file:px-3 file:py-1
+                       file:rounded file:cursor-pointer
+                       hover:file:bg-gray-500"
+            >
+        </div>
+
+        <input
+            x-model="groupName"
+            class="w-full mb-3 p-2 rounded bg-gray-700 text-white text-sm sm:text-base"
+            placeholder="Group name"
+        >
+
+        <textarea
+            x-model="description"
+            rows="3"
+            class="w-full mb-4 p-2 rounded bg-gray-700 text-white text-sm sm:text-base"
+            placeholder="Description"
+        ></textarea>
+
+        {% if active_type == "group" %}
+            <h3 class="text-sm text-gray-300 mb-2">
+                Members
+            </h3>
+
+            <input
+                x-model="membersInput"
+                @keydown.enter.prevent="addMember()"
+                placeholder="Username + Enter"
+                class="w-full mb-3 p-2 rounded bg-gray-700 text-white text-sm"
+            >
+
+            <div class="flex flex-wrap gap-2 mb-4 max-h-32 overflow-y-auto">
+                <template x-for="(member, index) in members" :key="index">
+                    <span
+                        class="bg-gray-600 px-2 py-1 rounded text-xs sm:text-sm
+                               flex items-center gap-1 text-white"
+                    >
+                        <span x-text="member"></span>
+
+                        <button
+                            @click="removeMember(index)"
+                            class="text-red-200 bg-gray-500 hover:text-red-500 hover:bg-gray-600 leading-none ml-1"
+                        >
+                            ✕
+                        </button>
+                    </span>
+                </template>
+            </div>
+        {% endif %}
+
+        <div class="flex gap-2 mt-4">
+            <button
+                @click="close()"
+                class="flex-1 bg-gray-600 py-2 rounded hover:bg-gray-500 text-sm sm:text-base"
+            >
+                Cancel
+            </button>
+
+            <button
+                @click="save()"
+                class="flex-1 bg-emerald-500 py-2 rounded hover:bg-emerald-400 text-sm sm:text-base"
+            >
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+
+{% if chat_group and chat_group.group_name %}
+    {{ members|json_script:"group-members" }}
+
+    <script>
+        function editGroupModal() {
+            return {
+                show: false,
+                step: 1,
+
+                groupName: "{{ chat_group.display_name|escapejs }}",
+                description: "{{ chat_group.description|escapejs }}",
+                imageUrl: "{{ chat_group.pic }}",
+
+                image: null,
+                preview: null,
+
+                members: JSON.parse(
+                    document.getElementById('group-members').textContent
+                ),
+                membersInput: "",
+
+                openEdit() {
+                    this.show = true
+                },
+
+                close() {
+                    this.show = false
+                    if (this.preview) URL.revokeObjectURL(this.preview)
+                    this.preview = null
+                    this.image = null
+                },
+
+                addMember() {
+                    const name = this.membersInput.trim()
+                    if (name && !this.members.includes(name)) {
+                        this.members.push(name)
+                    }
+                    this.membersInput = ""
+                },
+
+                removeMember(index) {
+                    this.members.splice(index, 1)
+                },
+
+                previewImage(e) {
+                    this.image = e.target.files[0]
+                    this.preview = URL.createObjectURL(this.image)
+                },
+
+                save() {
+                    const fd = new FormData()
+
+                    fd.append("groupName", this.groupName)
+                    fd.append("description", this.description)
+                    fd.append("members", JSON.stringify(this.members))
+
+                    if (this.image) {
+                        fd.append("image", this.image)
+                    }
+
+                    fetch("{% url 'update_group' chat_group.group_name %}", {
+                        method: "POST",
+                        headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                        body: fd
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) window.location.href = `/chat/{{ active_type }}/${data.group_name}/`
+                        else alert(data.error)
+                    })
+                }
+            }
+        }
+    </script>
+{% endif %}
+

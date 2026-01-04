@@ -1,0 +1,77 @@
+{% extends 'layouts/box.html' %}
+
+{% block title %}
+    {% if onboarding %}
+        Complete Profile
+    {% else %}
+        Edit Profile
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="text-center flex flex-col items-center">
+        <img id="avatar" class="w-36 h-36 rounded-full object-cover my-4 hover:opacity-90" src="{{ user.profile.avatar }}" />
+        <div class="text-center max-w-md">
+            <h1 id="displayname">{{ user.profile.displayname|default:user.username }}</h1>
+            <div class="text-gray-400 mb-2 -mt-3">@{{ user.username }}</div>
+        </div>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <input type="file" name="image" id="id_image" accept="image/*" hidden>
+        <div class="mt-4 flex flex-col gap-2 min-w-md mx-auto">
+            {{ form.displayname }}
+            {{ form.info }}
+        </div>
+
+        <br>
+
+        <button type="submit" >Submit</button>
+
+        {% if onboarding %}
+            <a class="button button-gray ml-1" href="{% url 'home' %}">Skip</a>
+        {% else %}
+            <a class="button button-gray ml-1" href="{{ request.META.HTTP_REFERER }}">Cancel</a>
+        {% endif %}
+
+    </form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const fileInput = document.getElementById('id_image')
+                       || document.querySelector('input[type="file"]');
+
+        const avatar = document.getElementById('avatar');
+        const displayNameInput = document.getElementById('id_displayname');
+        const displayNameOutput = document.getElementById('displayname');
+
+        avatar.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                fileInput.value = '';
+                return;
+            }
+
+            avatar.src = URL.createObjectURL(file);
+        });
+
+        if (displayNameInput && displayNameOutput) {
+            displayNameInput.addEventListener('input', (e) => {
+                displayNameOutput.textContent = e.target.value || '';
+            });
+        }
+
+    });
+</script>
+
+{% endblock %}

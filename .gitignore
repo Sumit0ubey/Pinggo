@@ -1,0 +1,26 @@
+# Virtual environment
+venv/
+Pinggo/.env/
+.env
+.env.*
+
+# Django static files
+staticfiles/
+media/
+
+# Django database
+db.sqlite3
+*.sqlite3
+
+# Django migrations
+**/migrations/*
+!**/migrations/__init__.py
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# OS / editor junk
+.DS_Store
+.idea/
+.vscode/

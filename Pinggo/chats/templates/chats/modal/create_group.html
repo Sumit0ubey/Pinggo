@@ -1,0 +1,131 @@
+<div
+    x-show="showModal"
+    x-cloak
+    x-transition
+    @click.self="close()"
+    class="fixed inset-0 z-50 bg-black/60
+           flex items-end sm:items-center justify-center
+           px-3 sm:px-0"
+>
+    <div
+        class="bg-gray-800
+               w-full sm:w-96
+               max-h-[90vh]
+               rounded-t-2xl sm:rounded-2xl
+               shadow-xl
+               p-5 sm:p-6
+               relative
+               overflow-y-auto"
+    >
+
+        <button
+            @click="close()"
+            class="absolute top-1 right-3
+                   text-gray-400 bg-gray-800
+                   hover:text-white hover:bg-gray-700
+                   text-xl"
+        >
+            &times;
+        </button>
+
+        <div x-show="step === 1">
+            <h2 class="text-base sm:text-lg font-semibold text-white mb-4">
+                Create Group
+            </h2>
+
+            <input
+                x-model="groupName"
+                placeholder="Group name"
+                class="w-full mb-3 p-2 rounded bg-gray-700 text-white text-sm sm:text-base"
+            >
+
+            <textarea
+                x-model="description"
+                rows="3"
+                placeholder="Description"
+                class="w-full mb-3 p-2 rounded bg-gray-700 text-white text-sm sm:text-base"
+            ></textarea>
+
+            <div class="mb-4 flex items-center gap-3">
+                <img
+                    x-show="preview"
+                    :src="preview"
+                    class="w-12 h-12 sm:w-14 sm:h-14
+                           rounded-full object-cover
+                           border border-gray-600"
+                >
+
+                <input
+                    type="file"
+                    accept="image/*"
+                    @change="
+                        if (preview) URL.revokeObjectURL(preview);
+                        image = $event.target.files[0];
+                        preview = URL.createObjectURL(image)
+                    "
+                    class="flex-1 text-gray-400 text-sm
+                           file:bg-gray-600 file:text-white
+                           file:border-0 file:px-3 file:py-1
+                           file:rounded file:cursor-pointer
+                           hover:file:bg-gray-500"
+                >
+            </div>
+
+            <button
+                @click="step = 2"
+                class="w-full bg-emerald-500 py-2 rounded
+                       hover:bg-emerald-400 transition"
+            >
+                Next
+            </button>
+        </div>
+
+        <div x-show="step === 2">
+            <h2 class="text-base sm:text-lg font-semibold text-white mb-4">
+                Add Members
+            </h2>
+
+            <input
+                x-model="membersInput"
+                @keydown.enter.prevent="addMember()"
+                placeholder="Type username and press Enter"
+                class="w-full mb-3 p-2 rounded bg-gray-700 text-white text-sm"
+            >
+
+            <div class="flex flex-wrap gap-2 mb-4 max-h-32 overflow-y-auto">
+                <template x-for="(member, index) in members" :key="index">
+                    <span
+                        class="bg-gray-600 px-2 py-1 rounded
+                               flex items-center gap-1 text-xs sm:text-sm"
+                    >
+                        <span x-text="member" class="text-white"></span>
+
+                        <button
+                            @click="members.splice(index,1)"
+                            class="text-red-200 hover:text-red-600 bg-gray-500 hover:text-white hover:bg-gray-600 leading-none ml-1"
+                        >
+                            ✕
+                        </button>
+                    </span>
+                </template>
+            </div>
+
+            <div class="flex gap-2">
+                <button
+                    @click="step = 1"
+                    class="flex-1 bg-gray-600 py-2 rounded hover:bg-gray-500"
+                >
+                    Back
+                </button>
+
+                <button
+                    @click="submitGroup()"
+                    class="flex-1 bg-emerald-500 py-2 rounded
+                           hover:bg-emerald-400 transition"
+                >
+                    Create
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

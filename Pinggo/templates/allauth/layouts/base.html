@@ -1,0 +1,20 @@
+{% extends 'layouts/box.html' %}
+
+{% block title %}
+    {% if request.resolver_match.url_name == "account_login" %}
+        Login
+    {% elif request.resolver_match.url_name == "account_signup" %}
+        Sign Up
+    {% elif request.resolver_match.url_name == "account_logout" %}
+        Logout
+    {% else %}
+        Realtime-Chat
+    {% endif %}
+{% endblock %}
+
+{% block class %}
+    allauth
+{% endblock %}
+
+{% block content %}
+{% endblock %}

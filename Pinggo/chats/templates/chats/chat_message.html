@@ -1,0 +1,46 @@
+{% if message.author == user %}
+    <li class="flex justify-end mb-4">
+
+        <div class="bg-green-200 rounded-l-lg rounded-tr-lg p-3 max-w-[75%] text-sm">
+            <span>{{ message.message }}</span>
+        </div>
+
+        <div class="flex items-end">
+            <svg height="13" width="8" >
+                <path fill="#bbf7d0" d="M6.3,10.4C1.5,8.7,0.9,5.5,0,0.2L0,13l5.2,0C7,13,9.6,11.5,6.3,10.4z"/>
+            </svg>
+        </div>
+
+    </li>
+{% else %}
+    <li>
+        <div class="flex justify-start text-sm">
+
+            {% if active_type != "private" %}
+                <div class="flex items-end mr-2" >
+                    <a href="{% url 'profile' message.author.username %}">
+                        <img class="w-6 h-6 rounded-full object-cover" src="{{ message.author.profile.avatar }}">
+                    </a>
+                </div>
+            {% endif %}
+
+            <div class="flex items-end" >
+                <svg height="13" width="8" >
+                    <path fill="#111827" d="M2.8,13L8,13L8,0.2C7.1,5.5,6.5,8.7,1.7,10.4C-1.6,11.5,1,13,2.8,13z"></path>
+                </svg>
+            </div>
+
+            <div class="bg-gray-900 p-4 max-w-[75%] rounded-r-lg rounded-tl-lg">
+                <span class="text-white">{{ message.message }}</span>
+            </div>
+
+        </div>
+
+        {% if active_type != "private" %}
+            <div class="text-xs font-light py-1 ml-10 mb-2">
+                <span class="text-white/70">{{ message.author.profile.name }}</span>
+            </div>
+        {% endif %}
+
+    </li>
+{% endif %}

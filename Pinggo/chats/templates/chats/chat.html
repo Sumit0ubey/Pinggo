@@ -1,0 +1,170 @@
+{% extends 'layouts/blank.html' %}
+
+{% load static %}
+
+{% block title %} Chats {% endblock %}
+
+{% block content %}
+
+<div class="w-full flex flex-col md:flex-row gap-1 px-1 md:px-2">
+
+    <div class="w-full md:w-[5%] my-1 md:my-1">
+        {% include 'chats/chat_type.html' %}
+    </div>
+
+    <div class="flex w-full md:flex-row gap-1">
+
+        <div class="w-[30%] md:w-[25%] md:my-1">
+            {% include 'chats/chat_names.html' %}
+        </div>
+
+        <div class="w-[70%] md:w-[75%] md:my-1 ml-auto">
+            {% include 'chats/chat_message_base.html' %}
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+    [x-cloak] {
+        display: none !important;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      scrollbar-width: none;
+    }
+
+</style>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function searchModal() {
+        return {
+            search: false,
+            username: "",
+
+            openSearch() {
+                this.search = true
+                this.$nextTick(() => {
+                    document.body.classList.add("overflow-hidden")
+                })
+            },
+
+            closeSearch() {
+                this.search = false
+                this.username = ""
+                document.body.classList.remove("overflow-hidden")
+            },
+
+            startChat() {
+                const name = this.username.trim()
+                if (!name) return
+
+                window.location.href = `/chat/create/${name}/`
+
+                this.closeSearch()
+            }
+        }
+    }
+
+    function groupViewModal() {
+        return {
+            view: false,
+
+            openView() {
+                this.view = true
+            },
+
+            closeView() {
+                this.view = false
+            }
+        }
+    }
+
+    function groupModal() {
+        return {
+            showModal: false,
+            step: 1,
+
+            groupName: '',
+            description: '',
+
+            image: null,
+            preview: null,
+
+            members: [],
+            membersInput: '',
+
+            close() {
+                this.showModal = false
+                this.step = 1
+                this.groupName = ''
+                this.description = ''
+                this.image = null
+                this.preview = null
+                this.members = []
+                this.membersInput = ''
+            },
+
+            addMember() {
+                const name = this.membersInput.trim()
+                if (name && !this.members.includes(name)) {
+                    this.members.push(name)
+                }
+                this.membersInput = ''
+            },
+
+            submitGroup() {
+                if (!this.groupName.trim()) {
+                    alert("Group name is required")
+                    return
+                }
+
+                const slug = this.groupName
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-z0-9-]/g, '')
+
+                const formData = new FormData()
+                formData.append('group_name', slug)
+                formData.append('description', this.description)
+                if (this.image) formData.append('image', this.image)
+                formData.append('members', JSON.stringify(this.members))
+
+                fetch("{% url 'create_group' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.close()
+                        location.reload()
+                    } else {
+                        alert(data.error)
+                    }
+                })
+            }
+        }
+    }
+
+    function scrollToBottom(){
+        const container = document.getElementById('chat_container');
+        container.scrollTop = container.scrollHeight;
+    }
+    scrollToBottom()
+
+</script>
+{% endblock %}

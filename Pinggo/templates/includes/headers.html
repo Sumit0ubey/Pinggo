@@ -1,0 +1,109 @@
+{% load static %}
+<header
+        class="flex items-center justify-between
+           bg-gray-800 h-16 md:h-20
+           px-3 md:px-8
+           text-white sticky top-0 z-40" xmlns:x-transition="http://www.w3.org/1999/xhtml"
+        xmlns:x-bind="http://www.w3.org/1999/xhtml">
+
+    <div>
+        <a class="flex items-center gap-2" href="/">
+            <img class="h-6" src="{% static 'images/logo.svg' %}" alt="Logo"/>
+            <span class="hidden md:inline text-lg font-bold">
+                Pinggo
+            </span>
+        </a>
+    </div>
+
+    <nav class="block bg-gray-800 relative">
+        <ul class="navitems flex items-center justify-center h-full gap-3">
+
+            {% if request.user.is_authenticated %}
+
+                {% if request.user.is_staff %}
+                    <li class="hidden md:block">
+                        <a href="{% url 'admin:index' %}">Admin Dashboard</a>
+                    </li>
+                {% endif %}
+
+                <li x-data="{ dropdownOpen: false }"
+                    class="relative flex items-center gap-1">
+
+                    <a href="{% url 'profile' %}"
+                       class="flex items-center gap-2">
+                        <img class="h-8 w-8 rounded-full object-cover"
+                             src="{{ user.profile.avatar }}"
+                             title="{{ user.profile.name }}" />
+                        <span class="hidden md:inline">
+                            {{ user.username }}
+                        </span>
+                    </a>
+
+                    <button
+                        @click="dropdownOpen = !dropdownOpen"
+                        @click.away="dropdownOpen = false"
+                        class="focus:outline-none p-1 rounded bg-gray-800"
+                        type="button">
+                        <img
+                            x-bind:class="dropdownOpen && 'rotate-180'"
+                            class="w-4 transition-transform"
+                            src="https://img.icons8.com/small/32/777777/expand-arrow.png"/>
+                    </button>
+
+                    <div
+                        x-show="dropdownOpen"
+                        x-cloak
+                        class="absolute right-0 top-12 md:top-14
+                               bg-gray-800 shadow rounded-lg
+                               p-3 z-20"
+                        x-transition:enter="duration-200 ease-out"
+                        x-transition:enter-start="opacity-0 -translate-y-2 scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 scale-100">
+
+                        <ul class="hoverlist flex gap-3 md:flex-col md:gap-2">
+
+                            <li>
+                                <a href="{% url 'profile_edit' %}">
+                                    <img src="{% static 'images/edit.svg' %}"
+                                         class="w-5 h-5" alt="Edit"/>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{% url 'profile_settings' %}">
+                                    <img src="{% static 'images/settings_icon.svg' %}"
+                                         class="w-5 h-5" alt="Settings"/>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{% url 'account_logout' %}">
+                                    <img src="{% static 'images/logout_icon.svg' %}"
+                                         class="w-5 h-5" alt="Logout"/>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </li>
+
+            {% else %}
+
+                <li>
+                    <a href="{% url 'account_login' %}">
+                        <img src="{% static 'images/sign_in_icon.svg' %}"
+                             class="w-5 h-5" alt="Login"/>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'account_signup' %}?next={% url 'profile_onboarding' %}">
+                        <img src="{% static 'images/sign_up_icon.svg' %}"
+                             class="w-5 h-5" alt="Signup"/>
+                    </a>
+                </li>
+
+            {% endif %}
+        </ul>
+    </nav>
+</header>

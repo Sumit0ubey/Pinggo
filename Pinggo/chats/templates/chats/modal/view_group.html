@@ -1,0 +1,73 @@
+<div
+    x-show="view"
+    x-transition
+    x-cloak
+    @click.self="closeView()"
+    class="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center px-3 sm:px-0"
+>
+    <div
+        class="bg-gray-800
+               w-full sm:w-[420px]
+               max-h-[90vh]
+               rounded-t-2xl sm:rounded-2xl
+               p-5 sm:p-6
+               shadow-xl
+               overflow-y-auto">
+
+        <div class="flex items-center gap-3 mb-4">
+            {% if active_type == "private" and other_user %}
+                <img
+                    src="{{ other_user.profile.avatar }}"
+                    class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
+                >
+            {% else %}
+                <img
+                    src="{{ chat_group.pic }}"
+                    class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
+                >
+            {% endif %}
+
+            <div class="min-w-0">
+                <h2 class="text-white font-semibold text-base sm:text-lg truncate">
+                    {{ chat_group.display_name }}
+                </h2>
+                <p class="text-gray-400 text-xs">
+                    Group details
+                </p>
+            </div>
+        </div>
+
+        {% if chat_group.description %}
+            <p class="text-gray-300 text-sm mb-4">
+                {{ chat_group.description }}
+            </p>
+        {% else %}
+            <p class="text-gray-500 text-sm mb-4 italic">
+                No description provided
+            </p>
+        {% endif %}
+
+        {% if active_type == "group" %}
+            <h3 class="text-gray-400 text-sm mb-2">
+                Members ({{ members|length }})
+            </h3>
+
+            <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                {% for member in members %}
+                    <span class="bg-gray-700 text-white text-xs px-3 py-1 rounded-full">
+                        {{ member }}
+                    </span>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="mt-6">
+            <button
+                @click="closeView()"
+                class="w-full bg-gray-600 hover:bg-gray-500 py-2 rounded-lg text-white"
+            >
+                Close
+            </button>
+        </div>
+    </div>
+</div>

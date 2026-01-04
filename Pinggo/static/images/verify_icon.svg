@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     class="w-5 h-5"
+     aria-hidden="true">
+  <path d="M12 2L3 6v6c0 5.25 3.75 10.5 9 12 5.25-1.5 9-6.75 9-12V6l-9-4z"/>
+  <polyline points="9 12 12 15 17 10"/>
+</svg>

@@ -1,0 +1,100 @@
+{% load static %}
+
+<div id="chat_window"
+     class="
+        flex flex-col
+        bg-gray-800 rounded-2xl shadow-2xl relative
+        p-1
+        h-[calc(100vh-7rem)] md:h-[40rem]
+     ">
+
+    {% if chat_group %}
+
+        <div class="flex items-center bg-gray-900 p-2 sticky top-0 z-10">
+
+            <div class="flex items-center gap-3">
+                <div class="relative" x-data="groupViewModal()">
+                    <a href="#" @click.prevent="openView()">
+                        {% if active_type == "private" and other_user %}
+                            <img
+                                src="{{ other_user.profile.avatar }}"
+                                alt="{{ other_user.username }}"
+                                class="w-10 h-10 rounded-full object-cover shrink-0"
+                            >
+                        {% else %}
+                            <img
+                                src="{{ chat_group.pic }}"
+                                alt="{{ chat_group.display_name }}"
+                                class="w-10 h-10 rounded-full object-cover shrink-0"
+                            >
+                        {% endif %}
+
+                        <span id="online-icon"
+                              class="absolute bottom-0 right-0
+                                     w-3 h-3 bg-gray-500
+                                     border-2 border-gray-800
+                                     rounded-full"></span>
+                    </a>
+
+                    {% include "chats/modal/view_group.html" %}
+                </div>
+
+                <div class="text-white text-sm font-medium truncate">
+                    {{ active_group }}
+                    {% if active_type != "private" %}
+                        [<span id="online-count" class="text-white">0</span> online ]
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if request.user.username == chat_group.creator.username and active_type != "private" %}
+                <div x-data="editGroupModal()" class="ml-auto shrink-0">
+                    <div @click="openEdit()">
+                        <button class="p-1 rounded-full bg-gray-800 hover:bg-gray-700 transition">
+                            <img src="{% static 'images/settings_icon.svg' %}"
+                                 alt="Settings"
+                                 class="w-5 h-5">
+                        </button>
+                    </div>
+                    {% include 'chats/modal/edit_group.html' %}
+                </div>
+            {% endif %}
+
+        </div>
+
+        <div id="chat_container"
+             class="flex-1 overflow-y-auto hide-scrollbar">
+
+            <ul id="chat_messages"
+                class="flex flex-col justify-end gap-2 p-3 md:p-4">
+                {% for message in chat_messages %}
+                    {% include 'chats/chat_message.html' %}
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="sticky bottom-0 z-5 px-2 pt-2 pb-1 bg-gray-800">
+            <div class="flex items-center rounded-xl px-2 py-1">
+                <form id="chat_message_form"
+                      class="w-full"
+                      hx-ext="ws"
+                      ws-connect="/ws/chatroom/{{ active_type }}/{{ chat_group.group_name }}"
+                      ws-send
+                      _="on htmx:wsAfterSend reset() me">
+
+                    {% csrf_token %}
+                    {{ form }}
+                </form>
+            </div>
+        </div>
+
+    {% else %}
+
+        <div class="flex items-center justify-center flex-1">
+            <h5 class="text-gray-400 text-sm md:text-base">
+                Your Messages Will Be Shown Here...
+            </h5>
+        </div>
+
+    {% endif %}
+</div>

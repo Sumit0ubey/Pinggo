@@ -1,0 +1,88 @@
+{% load static %}
+
+<div id="chats"
+     class="flex flex-col
+        bg-gray-800 rounded-2xl shadow-2xl relative
+        p-1 h-[calc(100vh-7rem)] md:h-[40rem]">
+
+    <div class="sticky top-0 z-10 flex items-center justify-between
+                px-3 md:px-4 py-3 rounded-t-2xl bg-gray-900">
+
+        <h2 class="text-sm font-semibold text-white tracking-wide truncate">
+            {{ active_type|capfirst }} Chats
+        </h2>
+
+        {% if active_type == "group" %}
+            <div x-data="groupModal()">
+                <button @click="showModal = true"
+                        class="w-7 h-7 flex items-center justify-center
+                               rounded-full bg-gray-700
+                               hover:bg-emerald-500
+                               text-white text-lg font-semibold
+                               leading-none transition">
+                    +
+                </button>
+                {% include 'chats/modal/create_group.html' %}
+            </div>
+
+        {% elif active_type == "private" %}
+            <div x-data="searchModal()">
+                <button @click="openSearch()"
+                        class="w-7 h-7 flex items-center justify-center
+                               rounded-full bg-gray-700
+                               hover:bg-emerald-500
+                               text-white text-lg font-semibold
+                               leading-none transition">
+                    🔍
+                </button>
+                {% include 'chats/modal/search_create_private_chat_modal.html' %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if groups or private_chats %}
+        <div class="flex-1 overflow-y-auto px-2 py-3 space-y-1">
+
+            {% for group in groups %}
+                <a href="{% url 'chat' active_type group.group_name %}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-md
+                          {% if group.group_name == current_chat %}
+                              bg-gray-700 text-emerald-400
+                          {% else %}
+                              text-white hover:bg-gray-700
+                          {% endif %}">
+
+                    <img src="{{ group.pic }}"
+                         class="w-7 h-7 rounded-full object-cover shrink-0">
+
+                    <span class="text-sm truncate">
+                        {{ group.display_name|capfirst }}
+                    </span>
+                </a>
+            {% endfor %}
+
+            {% for item in private_chats %}
+                <a href="{% url 'chat' 'private' item.group.group_name %}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-md
+                          {% if item.group.group_name == current_chat %}
+                              bg-gray-700 text-emerald-400
+                          {% else %}
+                              text-white hover:bg-gray-700
+                          {% endif %}">
+
+                    <img src="{{ item.other_user.profile.avatar }}"
+                         class="w-7 h-7 rounded-full object-cover shrink-0">
+
+                    <span class="text-sm truncate">
+                        {{ item.other_user.username|capfirst }}
+                    </span>
+                </a>
+            {% endfor %}
+
+        </div>
+    {% else %}
+        <div class="flex items-center justify-center flex-1 text-gray-400">
+            No chats available
+        </div>
+    {% endif %}
+</div>
