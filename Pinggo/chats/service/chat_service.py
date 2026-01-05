@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 
-from chats.models import ChatGroup
-from chats.exception import ChatTypeRequired, ChatNameRequired, ChatDoesNotExist, ChatRequired
+from ..models import ChatGroup
+from ..exception import ChatTypeRequired, ChatNameRequired, ChatDoesNotExist, ChatRequired
 
 
 class ChatService:
@@ -64,7 +64,7 @@ class ChatService:
         return chat.members.exclude(id=user_id).first()
 
     @staticmethod
-    def get_chat_members(chat=None):
+    def get_chat_messages(chat=None):
         if not chat:
             return ChatRequired("Chat is required")
 
