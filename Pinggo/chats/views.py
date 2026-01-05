@@ -152,8 +152,11 @@ def create_group(request):
 
 @login_required(login_url="account_login")
 @require_POST
-def edit_group(request, group_name=None):
-    group = get_object_or_404(ChatGroup, group_name=group_name)
+def edit_group(request, chat_type=None, group_name=None):
+    if not chat_type:
+        return JsonResponse({"success": False, "error": "Invalid request"})
+
+    group = get_object_or_404(ChatGroup, chat_type=chat_type, group_name=group_name)
 
     if request.user != group.creator:
         return JsonResponse({"error": "Unauthorized"}, status=403)

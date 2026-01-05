@@ -160,7 +160,7 @@
                         fd.append("image", this.image)
                     }
 
-                    fetch("{% url 'update_group' chat_group.group_name %}", {
+                    fetch("{% url 'update_group' active_type chat_group.group_name %}", {
                         method: "POST",
                         headers: { "X-CSRFToken": "{{ csrf_token }}" },
                         body: fd

@@ -10,6 +10,10 @@ from ..models import Profile
 class UserService:
 
     @staticmethod
+    def get_user_by_username(username) -> User:
+        return get_object_or_404(User, username=username)
+
+    @staticmethod
     def get_user_details_by_username(username) -> Profile:
         return get_object_or_404(User, username=username).profile
 
