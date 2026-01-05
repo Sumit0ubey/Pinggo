@@ -200,16 +200,12 @@ def start_private_chat(request, username):
     with transaction.atomic():
         chat, created = ChatGroup.objects.get_or_create(
             group_name=group_name,
+            chat_type="private",
             defaults={
-                "chat_type": "private",
                 "description": "Private Chat",
                 "creator": request.user,
             }
         )
-
-        if chat.chat_type != "private":
-            messages.error(request, "Invalid private chat")
-            return redirect("chat_type", chat_type="private")
 
         chat.members.add(request.user, other_user)
 

@@ -10,8 +10,12 @@ from ..models import Profile
 class UserService:
 
     @staticmethod
-    def get_user_by_username(username) -> User:
+    def get_user_object(username) -> User:
         return get_object_or_404(User, username=username)
+
+    @staticmethod
+    def get_users_object(usernames):
+        return User.objects.filter(username__in=usernames)
 
     @staticmethod
     def get_user_details_by_username(username) -> Profile:
