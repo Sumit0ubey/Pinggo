@@ -1,11 +1,11 @@
 from django.db import transaction
 from django.http import JsonResponse
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
 from users.services.user_service import UserService
 
 from ..models import ChatGroup
-from ..exception import ChatTypeRequired, ChatNameRequired, ChatDoesNotExist, ChatRequired
 from ..utility import private_room_name
 
 
@@ -19,10 +19,7 @@ class ChatService:
         return False
 
     @staticmethod
-    def get_groups(user, chat_type=None):
-        if not chat_type:
-            return ChatTypeRequired("Chat type is required")
-
+    def get_groups(user, chat_type):
         if chat_type == "global":
             return ChatGroup.objects.filter(chat_type="global")
         elif chat_type == "group":
@@ -33,53 +30,56 @@ class ChatService:
         return None
 
     @staticmethod
-    def get_chat(chat_type=None, chat_name=None):
-        if not chat_type:
-            return ChatTypeRequired("Chat type is required")
-
-        if not chat_name:
-            return ChatNameRequired("Chat name is required")
-
-        chat = get_object_or_404(
+    def get_chat(chat_type, chat_name):
+        return get_object_or_404(
             ChatGroup,
             chat_type=chat_type,
             chat_name=chat_name,
         )
 
-        if not chat:
-            return ChatDoesNotExist("Chat does not exist")
-
-        return chat
 
     @staticmethod
-    def get_group_members(chat=None):
-        if not chat:
-            return ChatRequired("Chat is required")
-
+    def get_group_members(chat):
         return chat.members.value_list("username", flat=True)
 
-    @staticmethod
-    def get_other_member(user_id, chat=None):
-        if not chat:
-            return ChatRequired("Chat is required")
 
+    @staticmethod
+    def get_other_member(user_id, chat):
         return chat.members.exclude(id=user_id).first()
 
-    @staticmethod
-    def get_chat_messages(chat=None):
-        if not chat:
-            return ChatRequired("Chat is required")
 
+    @staticmethod
+    def get_chat_messages(chat):
         return chat.chat_messages.select_related("author").order_by("-created_at")[:60]
 
+
     @staticmethod
-    def create_group(group_name, description, chat_type, creator):
-        return ChatGroup.objects.create(
+    def create_group(user, group_name, description, chat_type, creator, image, members):
+        if ChatService.does_chat_exist(group_name):
+            return JsonResponse({"success": False, "error": "Group already exists"})
+
+        group = ChatGroup.objects.create(
             group_name=group_name,
             description=description,
             chat_type=chat_type,
             creator=creator,
         )
+
+        if image:
+            group.image = image
+            group.save()
+
+        group.members.add(user)
+
+        for username in members:
+            try:
+                user = UserService.get_user_object(username=username)
+                group.members.add(user)
+            except User.DoesNotExist:
+                pass
+
+        return JsonResponse({"success": True, "group_name":group_name})
+
 
     @staticmethod
     def update_group(chat_type, group_name, description, image, members):
@@ -102,6 +102,7 @@ class ChatService:
         group.save()
 
         return JsonResponse({"success": True, "group_name":group.group_name})
+
 
     @staticmethod
     def get_or_create_private_chat(current_user, other_user):
