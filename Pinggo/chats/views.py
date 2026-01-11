@@ -1,16 +1,18 @@
 import json
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
 from .forms import ChatMessageCreateForm
-from .models import ChatGroup
+from .models import ChatGroup, GroupMessage
 from .utility import private_room_name
 
 
@@ -134,8 +136,8 @@ def create_group(request):
         creator=request.user
     )
 
-    if request.FILES.get("image"):
-        group.image = request.FILES["image"]
+    if request.POST.get("image_url"):
+        group.image = request.POST.get("image_url")
         group.save()
 
     group.members.add(request.user)
@@ -161,11 +163,16 @@ def edit_group(request, chat_type=None, group_name=None):
     if request.user != group.creator:
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
-    group.group_name = request.POST.get("groupName")
+    if chat_type != "global":
+        group_name = f"{request.user.username}-{request.POST.get("groupName")}"
+    else:
+        group_name = request.POST.get("groupName")
+
+    group.group_name = group_name
     group.description = request.POST.get("description")
 
-    if request.FILES.get("image"):
-        group.image = request.FILES["image"]
+    if request.POST.get("image_url"):
+        group.image_url = request.POST.get("image_url")
 
     if group.chat_type == "group":
         members = json.loads(request.POST.get("members", "[]"))
@@ -210,3 +217,50 @@ def start_private_chat(request, username):
         chat.members.add(request.user, other_user)
 
     return redirect("chat", chat_type="private", chat_name=group_name)
+
+@login_required(login_url="account_login")
+def upload_file(request, chat_type=None, chat_name=None):
+    if not request.htmx:
+        messages.warning(request, "Invalid request")
+        return HttpResponseBadRequest("Invalid request")
+
+    chat = get_object_or_404(
+        ChatGroup,
+        chat_type=chat_type,
+        group_name=chat_name
+    )
+
+    file_message = ""
+    file_url = request.POST.get("file_url")
+    file_type = request.POST.get("file_type")
+    file_name = request.POST.get("file_name")
+    if request.POST.get("file_message"):
+        file_message = request.POST.get("file_message")
+
+    if chat_type != "global"  and request.user not in chat.members.all():
+        messages.warning(request, "Unauthorized")
+        return HttpResponseForbidden("You are not allowed")
+
+    if not file_url or not file_name:
+        messages.error(request, "Missing file data")
+        return HttpResponseBadRequest("Missing file data")
+
+    message = GroupMessage.objects.create(
+        group=chat,
+        author=request.user,
+        message=file_message,
+        file_url=file_url,
+        file_type=file_type,
+        file_name=file_name,
+    )
+
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"{chat_type}-{chat_name}",
+        {
+            "type": "message_handler",
+            "message_id": message.id,
+        }
+    )
+
+    return HttpResponse(status=204)

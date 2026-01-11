@@ -115,6 +115,7 @@
 
                 image: null,
                 preview: null,
+                image_url: null,
 
                 members: JSON.parse(
                     document.getElementById('group-members').textContent
@@ -130,6 +131,7 @@
                     if (this.preview) URL.revokeObjectURL(this.preview)
                     this.preview = null
                     this.image = null
+                    this.image_url = null
                 },
 
                 addMember() {
@@ -144,22 +146,41 @@
                     this.members.splice(index, 1)
                 },
 
-                previewImage(e) {
-                    this.image = e.target.files[0]
-                    this.preview = URL.createObjectURL(this.image)
+                async previewImage(e) {
+                    const file = e.target.files[0]
+                    if (!file) return
+
+                    if (!file.type.startsWith("image/")) {
+                        alert("Only images allowed")
+                        return
+                    }
+
+                    if (this.preview) {
+                        URL.revokeObjectURL(this.preview)
+                    }
+
+                    this.image = file
+                    this.preview = URL.createObjectURL(file)
+
+                    try {
+                        const result = await uploadToCloudinary(file, "group_avatars")
+                        this.image_url = result.secure_url
+                    } catch (err) {
+                        alert("Upload failed")
+                        console.error(err)
+                    }
                 },
 
                 save() {
                     const fd = new FormData()
 
-                    fd.append("groupName", this.groupName)
+                    const group_name = this.groupName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+                    fd.append("groupName", group_name)
                     fd.append("description", this.description)
                     fd.append("members", JSON.stringify(this.members))
-
-                    if (this.image) {
-                        fd.append("image", this.image)
+                    if (this.image){
+                        fd.append("image_url", this.image_url)
                     }
-
                     fetch("{% url 'update_group' active_type chat_group.group_name %}", {
                         method: "POST",
                         headers: { "X-CSRFToken": "{{ csrf_token }}" },

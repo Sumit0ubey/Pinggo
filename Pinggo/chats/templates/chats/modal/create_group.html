@@ -58,11 +58,7 @@
                 <input
                     type="file"
                     accept="image/*"
-                    @change="
-                        if (preview) URL.revokeObjectURL(preview);
-                        image = $event.target.files[0];
-                        preview = URL.createObjectURL(image)
-                    "
+                    @change="onImageChange"
                     class="flex-1 text-gray-400 text-sm
                            file:bg-gray-600 file:text-white
                            file:border-0 file:px-3 file:py-1

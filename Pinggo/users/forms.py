@@ -9,7 +9,7 @@ class ProfileForm(ModelForm):
         model = Profile
         exclude = ['user']
         widgets = {
-            'image': forms.FileInput(attrs={'accept': 'image/*', 'class': 'hidden'}),
+            'image': forms.HiddenInput(),
             'displayname': forms.TextInput(attrs={'placeholder': 'Add Display Name'}),
             'info': forms.Textarea(attrs={'placeholder': 'Add Information'}),
         }

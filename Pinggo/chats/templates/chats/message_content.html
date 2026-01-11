@@ -1,0 +1,61 @@
+{% if message.file_url %}
+
+    {% if message.is_image %}
+        <img
+            src="{{ message.file_url }}?f_auto,q_auto,w_500"
+            loading="lazy"
+            class="max-w-72 max-w-full rounded"
+            alt="image"
+        >
+
+    {% elif message.is_video %}
+        <video
+            controls
+            preload="metadata"
+            class="rounded max-w-full">
+            <source src="{{ message.file_url }}?f_auto,q_auto">
+        </video>
+
+    {% elif message.is_audio %}
+        <audio
+            controls
+            preload="metadata"
+            class="mt-1 w-72 max-w-full">
+            <source src="{{ message.file_url }}">
+            Your browser does not support the audio element.
+        </audio>
+
+    {% elif message.is_pdf %}
+        📄
+        <a
+            href="{{ message.file_url }}?response-content-type=application/pdf"
+            target="_blank"
+            rel="noopener"
+            class="hover:underline max-w-full"
+            download
+        >
+            {{ message.filename }}
+        </a>
+
+    {% else %}
+        📎
+        <a
+            href="{{ message.file_url }}"
+            target="_blank"
+            class="italic hover:underline max-w-full"
+            download
+        >
+            {{ message.filename }}
+        </a>
+
+    {% endif %}
+
+    {% if message.message %}
+        <div class="mt-1 text-sm">
+            {{ message.message }}
+        </div>
+    {% endif %}
+
+{% elif message.message %}
+    <span>{{ message.message }}</span>
+{% endif %}

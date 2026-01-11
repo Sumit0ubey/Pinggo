@@ -2,7 +2,7 @@
     <li class="flex justify-end mb-4">
 
         <div class="bg-green-200 rounded-l-lg rounded-tr-lg p-3 max-w-[75%] text-sm">
-            <span>{{ message.message }}</span>
+            {% include 'chats/message_content.html' %}
         </div>
 
         <div class="flex items-end">
@@ -30,8 +30,8 @@
                 </svg>
             </div>
 
-            <div class="bg-gray-900 p-4 max-w-[75%] rounded-r-lg rounded-tl-lg">
-                <span class="text-white">{{ message.message }}</span>
+            <div class="bg-gray-900 p-4 max-w-[75%] rounded-r-lg rounded-tl-lg text-white">
+                {% include 'chats/message_content.html' %}
             </div>
 
         </div>

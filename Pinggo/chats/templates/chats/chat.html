@@ -46,6 +46,59 @@
 
 {% block javascript %}
 <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('upload', {
+            visible: false,
+            status: 'idle',
+            fileName: '',
+            fileUrl: '',
+            fileType: '',
+            message: '',
+
+            open(name) {
+                console.log("Upload modal opening: ", name)
+                this.visible = true
+                this.status = 'uploading'
+                this.fileName = name
+                this.message = ''
+            },
+
+            uploaded({ url, type }) {
+                this.status = 'done'
+                this.fileUrl = url
+                this.fileType = type
+            },
+
+            failed() {
+                this.status = 'error'
+            },
+
+            cancel() {
+                this.reset()
+            },
+
+            submit() {
+                document.getElementById('file_url').value = this.fileUrl
+                document.getElementById('file_type').value = this.fileType
+                document.getElementById('file_name').value = this.fileName
+                document.getElementById('file_message').value = this.message
+
+                htmx.trigger('#chat_file_form', 'fileReady')
+                this.reset()
+            },
+
+            reset() {
+                this.visible = false
+                this.status = 'idle'
+                this.fileName = ''
+                this.fileUrl = ''
+                this.fileType = ''
+                this.message = ''
+            }
+        })
+    })
+
+
     function searchModal() {
         return {
             search: false,
@@ -99,6 +152,7 @@
 
             image: null,
             preview: null,
+            image_url: null,
 
             members: [],
             membersInput: '',
@@ -110,8 +164,40 @@
                 this.description = ''
                 this.image = null
                 this.preview = null
+                this.image_url = null
                 this.members = []
                 this.membersInput = ''
+            },
+
+            async uploadImage() {
+                if (!this.image) return;
+
+                if (!this.image.type.startsWith("image/")) {
+                    alert("Only images allowed");
+                    return;
+                }
+
+                try {
+                    const result = await uploadToCloudinary(this.image, "group_avatars");
+                    this.image_url = result.secure_url;
+                } catch (err) {
+                    alert("Upload failed");
+                    console.error(err);
+                }
+            },
+
+            onImageChange(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                if (this.preview) {
+                    URL.revokeObjectURL(this.preview);
+                }
+
+                this.image = file;
+                this.preview = URL.createObjectURL(file);
+
+                this.uploadImage();
             },
 
             addMember() {
@@ -137,7 +223,9 @@
                 const formData = new FormData()
                 formData.append('group_name', slug)
                 formData.append('description', this.description)
-                if (this.image) formData.append('image', this.image)
+                if (this.image){
+                    formData.append('image_url', this.image_url)
+                }
                 formData.append('members', JSON.stringify(this.members))
 
                 fetch("{% url 'create_group' %}", {
@@ -160,10 +248,44 @@
         }
     }
 
-    function scrollToBottom(){
+    async function handleFileUpload(input) {
+        const file = input.files[0]
+        if (!file) return
+
+        const maxSize = 20 * 1024 * 1024
+        if (file.size > maxSize) {
+            alert("Max file size is 20MB")
+            input.value = ""
+            return
+        }
+
+        const store = Alpine.store("upload")
+        store.open(file.name)
+
+        try {
+            const result = await uploadToCloudinary(file, "chat_files")
+            const type = detectFileType(file, result)
+
+            store.uploaded({
+                url: result.secure_url,
+                type: type
+            })
+
+        } catch (err) {
+            store.failed()
+            console.error(err)
+        } finally {
+            input.value = ""
+        }
+    }
+
+    function scrollToBottom(time=0){
+        setTimeout(function() {
         const container = document.getElementById('chat_container');
         container.scrollTop = container.scrollHeight;
+        }, time);
     }
+
     scrollToBottom()
 
 </script>

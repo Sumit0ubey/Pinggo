@@ -1,0 +1,76 @@
+<div
+    x-data="$store.upload"
+    x-show="visible"
+    x-transition
+    x-cloak
+
+    class="
+        fixed z-50
+        inset-x-0 bottom-0
+        sm:inset-auto sm:bottom-24 sm:right-4
+
+        bg-gray-800 text-white
+        w-full sm:w-80
+
+        rounded-t-2xl sm:rounded-xl
+        shadow-xl
+
+        p-4
+        max-h-[60vh]
+        sm:max-h-none
+    "
+>
+
+    <div class="text-sm font-medium truncate mb-1">
+        📎 <span x-text="fileName"></span>
+    </div>
+
+    <div class="text-xs mb-3">
+        <template x-if="status === 'uploading'">
+            <span class="text-yellow-400">Uploading…</span>
+        </template>
+
+        <template x-if="status === 'done'">
+            <span class="text-green-400">Uploaded ✓</span>
+        </template>
+
+        <template x-if="status === 'error'">
+            <span class="text-red-400">Upload failed</span>
+        </template>
+    </div>
+
+    <input
+        x-model="message"
+        placeholder="Add a message…"
+        class="
+            w-full p-2 rounded
+            bg-gray-700 text-sm
+            mb-3
+            focus:outline-none focus:ring-2 focus:ring-emerald-500
+        "
+    >
+
+    <div class="flex justify-end gap-2">
+        <button
+            @click="cancel()"
+            class="
+                text-xs px-3 py-1 rounded
+                bg-gray-600 hover:bg-gray-500
+            "
+        >
+            Cancel
+        </button>
+
+        <button
+            @click="submit()"
+            :disabled="status !== 'done'"
+            class="
+                text-xs px-3 py-1 rounded
+                bg-emerald-500 hover:bg-emerald-400
+                disabled:opacity-40 disabled:cursor-not-allowed
+            "
+        >
+            Submit
+        </button>
+    </div>
+</div>

@@ -74,18 +74,41 @@
         </div>
 
         <div class="sticky bottom-0 z-5 px-2 pt-2 pb-1 bg-gray-800">
-            <div class="flex items-center rounded-xl px-2 py-1">
-                <form id="chat_message_form"
-                      class="w-full"
+            <div class="flex items-center gap-2 w-full rounded-xl px-2 py-1">
+                <form id="chat_message_form" class="flex-1"
                       hx-ext="ws"
                       ws-connect="/ws/chatroom/{{ active_type }}/{{ chat_group.group_name }}"
                       ws-send
                       _="on htmx:wsAfterSend reset() me">
-
                     {% csrf_token %}
                     {{ form }}
                 </form>
+
+                <form id="chat_file_form" class="relative flex-shrink-0" enctype="multipart/form-data"
+                      hx-post="{% url 'upload-file' active_type chat_group.group_name %}"
+                      hx-target="#chat_messages" hx-swap="beforeend"
+                      hx-trigger="fileReady">
+
+                    {% csrf_token %}
+
+                    <input type="hidden" name="file_url" id="file_url">
+                    <input type="hidden" name="file_type" id="file_type">
+                    <input type="hidden" name="file_name" id="file_name">
+                    <input type="hidden" name="file_message" id="file_message">
+
+                    <input type="file" id="id_file" class="hidden" onchange="handleFileUpload(this)">
+
+                    <label for="id_file" class="cursor-pointer p-2 rounded-full hover:bg-gray-700 transition block">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" fill="none"
+                             viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+
+                    </label>
+                </form>
             </div>
+            {% include 'chats/modal/file_upload_box.html' %}
         </div>
 
     {% else %}

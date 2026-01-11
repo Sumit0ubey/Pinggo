@@ -116,5 +116,40 @@
     {% block javascript %}
     {% endblock %}
 
+    <script>
+        function getResourceType(file) {
+            if (file.type.startsWith("image/")) return "image"
+            if (file.type.startsWith("video/")) return "video"
+            return "raw"
+        }
+
+        const CLOUD_NAME = "dkhqapicv";
+
+        async function uploadToCloudinary(file, preset) {
+            const resourceType = getResourceType(file)
+
+            const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
+            const data = new FormData();
+
+            data.append("file", file);
+            data.append("upload_preset", preset);
+
+            const res = await fetch(url, { method: "POST", body: data });
+            if (!res.ok) throw new Error("Upload failed");
+
+            return await res.json();
+        }
+
+        function detectFileType(file, result) {
+            const type = file.type
+            if (type === "application/pdf") return "pdf"
+            if (file.type.startsWith("audio/")) return "audio"
+
+            if (result.resource_type === "image") return "image"
+            if (result.resource_type === "video") return "video"
+
+            return "other"
+        }
+    </script>
 </body>
 </html>

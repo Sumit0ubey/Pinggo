@@ -15,7 +15,7 @@ class ChatGroup(models.Model):
     group_name = models.CharField(max_length=255, unique=True, db_index=True)
     chat_type = models.CharField(max_length=10, choices=CHAT_TYPES, default="global")
     description = models.TextField(max_length=350, blank=True)
-    image = models.ImageField(upload_to='chats/images', blank=True)
+    image_url = models.URLField(blank=True)
 
     creator = models.ForeignKey(
         User,
@@ -92,19 +92,67 @@ class ChatGroup(models.Model):
 
     @property
     def pic(self):
-        if self.image:
-            return self.image.url
+        if self.image_url:
+            return self.image_url
         return static("images/group.svg")
 
 
 class GroupMessage(models.Model):
-    group = models.ForeignKey(ChatGroup, related_name='chat_messages', on_delete=models.CASCADE)
+    group = models.ForeignKey(ChatGroup, related_name='chat_messages', db_index=True, on_delete=models.CASCADE)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    message = models.TextField()
+    message = models.TextField(blank=True, null=True)
+    file_url = models.URLField(blank=True)
+    file_type = models.CharField(max_length=20,
+                                 choices=[
+                                     ("image", "Image"),
+                                     ("video", "Video"),
+                                     ("audio", "Audio"),
+                                     ("pdf", "PDF"),
+                                     ("other", "Other"),
+                                 ],
+                                 blank=True)
+    file_name = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
+
+    @property
+    def is_image(self):
+        if not self.file_name:
+            return False
+        return self.file_type == "image"
+
+    @property
+    def is_pdf(self):
+        if not self.file_url:
+            return False
+        return self.file_type == "pdf"
+
+    @property
+    def is_video(self):
+        if not self.file_url:
+            return False
+        return self.file_type == "video"
+
+    @property
+    def is_audio(self):
+        if not self.file_url:
+            return False
+        return self.file_type == "audio"
+
+    @property
+    def filename(self):
+        if self.file_url:
+            return self.file_name
+        return ""
+
     def __str__(self):
+        if self.message:
+            return f'{self.author}: {self.message}'
+        elif self.file_url:
+            return f'{self.author}: {self.filename}'
         return f'{self.author}: {self.message}'
+
+
 
     class Meta:
         ordering = ['-created_at']
