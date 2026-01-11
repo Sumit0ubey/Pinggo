@@ -59,6 +59,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'chats.middleware.EmailVerifiedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
@@ -183,6 +184,10 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": getenv("CLOUDINARY_API_SECRET"),
     "RESOURCE_TYPE": "auto",
 }
+
+CLOUDINARY_USER_PRESET = getenv("CLOUDINARY_USER_PRESET")
+CLOUDINARY_GROUP_PRESET = getenv("CLOUDINARY_GROUP_PRESET")
+CLOUDINARY_CHAT_PRESET = getenv("CLOUDINARY_CHAT_PRESET")
 
 # if DEBUG:
 #     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
