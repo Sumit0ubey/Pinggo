@@ -122,7 +122,7 @@ def create_group(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid request"})
 
-    name = f"{request.user.username}-{request.POST.get("group_name")}"
+    name = f"{request.user.username}-group-{request.POST.get("group_name")}"
     desc = request.POST.get("description", "")
     members = json.loads(request.POST.get("members", "[]"))
 
@@ -164,7 +164,7 @@ def edit_group(request, chat_type=None, group_name=None):
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
     if chat_type != "global":
-        group_name = f"{request.user.username}-{request.POST.get("groupName")}"
+        group_name = f"{request.user.username}-group-{request.POST.get("groupName")}"
     else:
         group_name = request.POST.get("groupName")
 
