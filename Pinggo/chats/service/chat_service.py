@@ -18,6 +18,7 @@ class ChatService:
 
         return False
 
+
     @staticmethod
     def get_groups(user, chat_type):
         if chat_type == "global":
@@ -28,6 +29,7 @@ class ChatService:
             return ChatGroup.objects.filter(chat_type="private", members=user).prefetch_related("members")
 
         return None
+
 
     @staticmethod
     def get_chat_404(chat_type, chat_name):
@@ -45,13 +47,19 @@ class ChatService:
             group_name=chat_name,
         ).first()
 
+
     @staticmethod
     def is_member(chat, user_id):
         return chat.members.filter(id=user_id).exists()
 
 
     @staticmethod
-    def get_group_members(chat):
+    def get_members(chat):
+        return chat.members.all()
+
+
+    @staticmethod
+    def get_members_username(chat):
         return chat.members.values_list("username", flat=True)
 
 
@@ -117,9 +125,7 @@ class ChatService:
 
 
     @staticmethod
-    def get_or_create_private_chat(current_user, other_user):
-        group_name = private_room_name(current_user, other_user)
-
+    def get_or_create_private_chat(group_name, current_user, other_user):
         with transaction.atomic():
             chat, created = ChatGroup.objects.get_or_create(
                 group_name=group_name,
@@ -131,11 +137,11 @@ class ChatService:
             )
 
             if not chat:
-                return JsonResponse({"success": False, "error": "Chat does not exist or wasn't created"})
+                return False
 
-            chat.members.add(other_user, current_user)
+            chat.members.add(current_user, other_user)
 
-        return JsonResponse({"success": True, "group_name":group_name})
+        return True
 
 
     @staticmethod

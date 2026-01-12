@@ -6,10 +6,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+
+from users.exception import ProfileDoesNotExist
+from users.services.user_service import UserService
 
 from .forms import ChatMessageCreateForm
 from .models import ChatGroup, GroupMessage
@@ -194,8 +196,8 @@ def edit_group(request, chat_type=None, group_name=None):
 def start_private_chat(request, username):
 
     try:
-        other_user = User.objects.get(username=username)
-    except User.DoesNotExist:
+        other_user = UserService.get_user_object(username)
+    except ProfileDoesNotExist:
         messages.info(request, "User not found")
         return redirect("chat_type", chat_type="private")
 
@@ -205,17 +207,9 @@ def start_private_chat(request, username):
 
     group_name = private_room_name(request.user, other_user)
 
-    with transaction.atomic():
-        chat, created = ChatGroup.objects.get_or_create(
-            group_name=group_name,
-            chat_type="private",
-            defaults={
-                "description": "Private Chat",
-                "creator": request.user,
-            }
-        )
-
-        chat.members.add(request.user, other_user)
+    if not ChatService.get_or_create_private_chat(group_name, request.user, other_user):
+        messages.error(request, "Unable to start or create chat")
+        return redirect("chat_type", chat_type="private")
 
     return redirect("chat", chat_type="private", chat_name=group_name)
 
@@ -226,11 +220,11 @@ def upload_file(request, chat_type=None, chat_name=None):
         messages.warning(request, "Invalid request")
         return HttpResponseBadRequest("Invalid request")
 
-    chat = get_object_or_404(
-        ChatGroup,
-        chat_type=chat_type,
-        group_name=chat_name
-    )
+    chat = ChatService.get_chat(chat_type, chat_name)
+
+    if not chat:
+        messages.warning(request, "Chat not found")
+        return HttpResponseBadRequest("Invalid request")
 
     file_message = ""
     file_url = request.POST.get("file_url")
@@ -239,7 +233,7 @@ def upload_file(request, chat_type=None, chat_name=None):
     if request.POST.get("file_message"):
         file_message = request.POST.get("file_message")
 
-    if chat_type != "global"  and request.user not in chat.members.all():
+    if chat_type != "global"  and not ChatService.is_member(chat, request.user.id):
         messages.warning(request, "Unauthorized")
         return HttpResponseForbidden("You are not allowed")
 
@@ -274,9 +268,8 @@ def leave_group(request, chat_type=None, chat_name=None):
         messages.warning(request, "Invalid request")
         return redirect("chat_base")
 
-    try:
-        chat = ChatService.get_chat_404(chat_type, chat_name)
-    except Http404:
+    chat = ChatService.get_chat(chat_type, chat_name)
+    if not chat:
         messages.error(request, "Group does not exist")
         return redirect("chat", chat_type=chat_type, chat_name=chat_name)
 
@@ -296,9 +289,8 @@ def delete_group(request, chat_type=None, chat_name=None):
         messages.warning(request, "Invalid request")
         return redirect("chat_base")
 
-    try:
-        chat = ChatService.get_chat_404(chat_type, chat_name)
-    except Http404:
+    chat = ChatService.get_chat(chat_type, chat_name)
+    if not chat:
         messages.error(request, "Group does not exist")
         return redirect("chat", chat_type=chat_type)
 
