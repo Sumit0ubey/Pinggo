@@ -85,7 +85,7 @@ class ChatGroup(models.Model):
 
     @property
     def display_name(self):
-        prefix = f"{self.creator.username}-"
+        prefix = f"{self.creator.username}-group"
         if self.group_name.startswith(prefix):
             return self.group_name[len(prefix):].replace('_', ' ').replace('-', ' ').title()
         return self.group_name.replace('_', ' ').replace('-', ' ').title()

@@ -10,7 +10,6 @@ from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, Http
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
-from users.exception import ProfileDoesNotExist
 from users.services.user_service import UserService
 
 from .forms import ChatMessageCreateForm
@@ -128,29 +127,15 @@ def create_group(request):
     name = f"{request.user.username}-group-{request.POST.get("group_name")}"
     desc = request.POST.get("description", "")
     members = json.loads(request.POST.get("members", "[]"))
+    image = request.POST.get("image_url") if request.POST.get("image_url") else None
 
-    if ChatGroup.objects.filter(group_name=name).exists():
+    if ChatService.does_chat_exist(name):
         return JsonResponse({"success": False, "error": "Group already exists"})
 
-    group = ChatGroup.objects.create(
-        group_name=name,
-        description=desc,
-        chat_type="group",
-        creator=request.user
-    )
+    result = ChatService.create_group(request.user, name, desc, "group", request.user, image, members)
 
-    if request.POST.get("image_url"):
-        group.image = request.POST.get("image_url")
-        group.save()
-
-    group.members.add(request.user)
-
-    for username in members:
-        try:
-            user = User.objects.get(username=username)
-            group.members.add(user)
-        except User.DoesNotExist:
-            pass
+    if not result:
+        return JsonResponse({"success": False, "error": "Unable to create group"})
 
     return JsonResponse({"success": True})
 
@@ -195,10 +180,10 @@ def edit_group(request, chat_type=None, group_name=None):
 @login_required(login_url="account_login")
 def start_private_chat(request, username):
 
-    try:
-        other_user = UserService.get_user_object(username)
-    except ProfileDoesNotExist:
-        messages.info(request, "User not found")
+    other_user = UserService.get_user_object(username)
+
+    if not other_user:
+        messages.warning(request, "User not found")
         return redirect("chat_type", chat_type="private")
 
     if other_user == request.user:

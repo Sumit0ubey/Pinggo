@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
@@ -75,30 +75,30 @@ class ChatService:
 
     @staticmethod
     def create_group(user, group_name, description, chat_type, creator, image, members):
-        if ChatService.does_chat_exist(group_name):
-            return JsonResponse({"success": False, "error": "Group already exists"})
+        try:
+            with transaction.atomic():
+                group = ChatGroup.objects.create(
+                    group_name=group_name,
+                    description=description,
+                    chat_type=chat_type,
+                    creator=creator,
+                )
 
-        group = ChatGroup.objects.create(
-            group_name=group_name,
-            description=description,
-            chat_type=chat_type,
-            creator=creator,
-        )
+                if image:
+                    group.image_url = image
 
-        if image:
-            group.image = image
-            group.save()
-
-        group.members.add(user)
-
-        for username in members:
-            try:
-                user = UserService.get_user_object(username=username)
                 group.members.add(user)
-            except User.DoesNotExist:
-                pass
 
-        return JsonResponse({"success": True, "group_name":group_name})
+                for username in members:
+                    try:
+                        member_user = UserService.get_user_object_404(username=username)
+                        group.members.add(member_user)
+                    except User.DoesNotExist:
+                        pass
+
+            return True
+        except IntegrityError:
+            return False
 
 
     @staticmethod

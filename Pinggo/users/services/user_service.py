@@ -11,6 +11,10 @@ class UserService:
 
     @staticmethod
     def get_user_object(username) -> User:
+        return  User.objects.filter(username=username).first()
+
+    @staticmethod
+    def get_user_object_404(username) -> User:
         return get_object_or_404(User, username=username)
 
     @staticmethod
