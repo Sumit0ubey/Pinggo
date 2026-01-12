@@ -1,0 +1,76 @@
+<div
+    x-show="show"
+    x-transition
+    x-cloak
+    @click.self="close()"
+    class="fixed inset-0 z-50 bg-black/60
+           flex items-end sm:items-center justify-center
+           px-3 sm:px-0"
+>
+    <div
+        class="bg-gray-800
+               w-full sm:w-[420px]
+               max-h-[90vh]
+               rounded-t-2xl sm:rounded-2xl
+               p-5 sm:p-6
+               shadow-xl
+               overflow-y-auto">
+
+        <h2 class="text-base sm:text-lg font-semibold text-white mb-4">
+            Leave Group
+        </h2>
+
+        <p class="text-gray-300 text-sm sm:text-base">
+            Do you really want to leave
+            <span class="font-semibold text-white">
+                {{ active_group }}
+            </span>
+            chat?
+            <br>
+            <span class="text-red-400 text-sm">
+                This action cannot be undone.
+            </span>
+        </p>
+
+        <div class="flex gap-2 mt-6">
+            <button
+                @click="close()"
+                class="flex-1 bg-gray-600 py-2 rounded
+                       hover:bg-gray-500
+                       text-sm sm:text-base"
+            >
+                Cancel
+            </button>
+
+            <button
+                @click="leaveDelete()"
+                class="flex-1 bg-red-600 py-2 rounded
+                       hover:bg-red-500
+                       text-sm sm:text-base"
+            >
+                Leave
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function leaveGroupModal() {
+        return {
+            show: false,
+
+            open() {
+                this.show = true
+            },
+
+            close() {
+                this.show = false
+            },
+
+            leaveDelete() {
+                window.location.href =
+                    `/chat/leave/{{ chat_group.chat_type }}/{{ chat_group.group_name }}/`
+            }
+        }
+    }
+</script>

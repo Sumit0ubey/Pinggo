@@ -13,7 +13,7 @@ class ChatService:
 
     @staticmethod
     def does_chat_exist(chat_name):
-        if ChatGroup.objects.filter(chat_name=chat_name).exists():
+        if ChatGroup.objects.filter(group_name=chat_name).exists():
             return True
 
         return False
@@ -30,17 +30,29 @@ class ChatService:
         return None
 
     @staticmethod
-    def get_chat(chat_type, chat_name):
+    def get_chat_404(chat_type, chat_name):
         return get_object_or_404(
             ChatGroup,
             chat_type=chat_type,
-            chat_name=chat_name,
+            group_name=chat_name,
         )
 
 
     @staticmethod
+    def get_chat(chat_type, chat_name):
+        return ChatGroup.objects.filter(
+            chat_type=chat_type,
+            group_name=chat_name,
+        ).first()
+
+    @staticmethod
+    def is_member(chat, user_id):
+        return chat.members.filter(id=user_id).exists()
+
+
+    @staticmethod
     def get_group_members(chat):
-        return chat.members.value_list("username", flat=True)
+        return chat.members.values_list("username", flat=True)
 
 
     @staticmethod
@@ -124,3 +136,9 @@ class ChatService:
             chat.members.add(other_user, current_user)
 
         return JsonResponse({"success": True, "group_name":group_name})
+
+
+    @staticmethod
+    def delete_group(chat_type, group_name):
+        deleted_count, _ = ChatGroup.objects.filter(chat_type=chat_type, group_name=group_name).delete()
+        return deleted_count

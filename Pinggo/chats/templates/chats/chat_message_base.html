@@ -48,16 +48,52 @@
             </div>
 
             {% if request.user.username == chat_group.creator.username and active_type != "private" %}
+
                 <div x-data="editGroupModal()" class="ml-auto shrink-0">
                     <div @click="openEdit()">
                         <button class="p-1 rounded-full bg-gray-800 hover:bg-gray-700 transition">
                             <img src="{% static 'images/settings_icon.svg' %}"
-                                 alt="Settings"
+                                 alt="Settings" title="Settings"
                                  class="w-5 h-5">
                         </button>
                     </div>
                     {% include 'chats/modal/edit_group.html' %}
                 </div>
+
+                <div x-data="deleteGroupModal()" class="ml-1 shrink-0">
+                    <div @click="open()">
+                        <button class="p-1 rounded-full bg-gray-800 hover:bg-gray-700 transition">
+                            <img src="{% static 'images/delete_white_icon.svg' %}" title="Delete Chat"
+                                 alt="Delete" class="w-5 h-5">
+                        </button>
+                    </div>
+                    {% include 'chats/modal/delete_group.html' %}
+                </div>
+
+            {% elif active_type == "private" %}
+
+                <div x-data="deleteGroupModal()" class="ml-auto shrink-0">
+                    <div @click="open()">
+                        <button class="p-1 rounded-full bg-gray-800 hover:bg-gray-700 transition">
+                            <img src="{% static 'images/delete_white_icon.svg' %}" title="Delete Chat"
+                                 alt="Delete" class="w-5 h-5">
+                        </button>
+                    </div>
+                    {% include 'chats/modal/delete_group.html' %}
+                </div>
+
+            {% elif active_type == "group" %}
+
+                <div x-data="leaveGroupModal()" class="ml-auto shrink-0">
+                    <div @click="open()">
+                        <button class="p-1 rounded-full bg-gray-800 hover:bg-gray-700 transition">
+                            <img src="{% static 'images/logout_icon.svg' %}" title="Leave Chat"
+                                 alt="Exit" class="w-5 h-5">
+                        </button>
+                    </div>
+                    {% include 'chats/modal/leave_group.html' %}
+                </div>
+
             {% endif %}
 
         </div>

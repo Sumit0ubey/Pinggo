@@ -7,12 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
 from .forms import ChatMessageCreateForm
 from .models import ChatGroup, GroupMessage
+from .service.chat_service import ChatService
 from .utility import private_room_name
 
 
@@ -69,11 +70,11 @@ def chat_view(request, chat_type=None, chat_name=None):
         raise PermissionDenied("Invalid chat type")
 
     if chat_type and chat_name:
-        chat_group = get_object_or_404(
-            ChatGroup,
-            chat_type=chat_type,
-            group_name=chat_name
-        )
+        chat_group = ChatService.get_chat(chat_type, chat_name)
+
+        if not chat_group:
+            messages.warning(request, "Group does not exists.")
+            return redirect("chat_type", chat_type=chat_type)
 
         if not chat_group.can_view(request.user):
             raise PermissionDenied("Invalid access")
@@ -218,6 +219,7 @@ def start_private_chat(request, username):
 
     return redirect("chat", chat_type="private", chat_name=group_name)
 
+
 @login_required(login_url="account_login")
 def upload_file(request, chat_type=None, chat_name=None):
     if not request.htmx:
@@ -264,3 +266,51 @@ def upload_file(request, chat_type=None, chat_name=None):
     )
 
     return HttpResponse(status=204)
+
+
+@login_required(login_url="account_login")
+def leave_group(request, chat_type=None, chat_name=None):
+    if not chat_type or not chat_name:
+        messages.warning(request, "Invalid request")
+        return redirect("chat_base")
+
+    try:
+        chat = ChatService.get_chat_404(chat_type, chat_name)
+    except Http404:
+        messages.error(request, "Group does not exist")
+        return redirect("chat", chat_type=chat_type, chat_name=chat_name)
+
+    if not ChatService.is_member(chat, request.user.id):
+        messages.warning(request, "Unauthorized access")
+        return redirect("chat_type", chat_type=chat_type)
+
+    chat.members.remove(request.user)
+
+    messages.success(request, "You have left the chat")
+    return redirect("chat_type", chat_type=chat_type)
+
+
+@login_required(login_url="account_login")
+def delete_group(request, chat_type=None, chat_name=None):
+    if not chat_type or not chat_name:
+        messages.warning(request, "Invalid request")
+        return redirect("chat_base")
+
+    try:
+        chat = ChatService.get_chat_404(chat_type, chat_name)
+    except Http404:
+        messages.error(request, "Group does not exist")
+        return redirect("chat", chat_type=chat_type)
+
+    if not chat.is_owner(request.user):
+        messages.warning(request, "Unauthorized access")
+        return redirect("chat_type", chat_type=chat_type)
+
+    count = ChatService.delete_group(chat_type, chat_name)
+
+    if count == 0:
+        messages.error(request, "Unable to delete group")
+        return redirect("chat_type", chat_type=chat_type, chat_name=chat_name)
+
+    messages.success(request, "Group deleted Successfully")
+    return redirect("chat_type", chat_type=chat_type)
