@@ -143,7 +143,7 @@ def create_group(request):
 @login_required(login_url="account_login")
 @require_POST
 def edit_group(request, chat_type=None, group_name=None):
-    if not chat_type:
+    if not chat_type or not group_name:
         return JsonResponse({"success": False, "error": "Invalid request"})
 
     group = get_object_or_404(ChatGroup, chat_type=chat_type, group_name=group_name)
@@ -156,23 +156,14 @@ def edit_group(request, chat_type=None, group_name=None):
     else:
         group_name = request.POST.get("groupName")
 
-    group.group_name = group_name
-    group.description = request.POST.get("description")
+    image_url = request.POST.get("image_url") if request.POST.get("image_url") else None
+    desc = request.POST.get("description")
+    members = json.loads(request.POST.get("members", "[]"))
 
-    if request.POST.get("image_url"):
-        group.image_url = request.POST.get("image_url")
+    result = ChatService.update_group(group, group_name, desc, image_url, members)
 
-    if group.chat_type == "group":
-        members = json.loads(request.POST.get("members", "[]"))
-
-        users = list(
-            User.objects.filter(username__in=members)
-        )
-        users.append(group.creator)
-
-        group.members.set(users)
-
-    group.save()
+    if not result:
+        return JsonResponse({"success": False, "error": "Unable to update group"})
 
     return JsonResponse({"success": True, "group_name":group.group_name})
 

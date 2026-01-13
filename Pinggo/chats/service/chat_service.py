@@ -102,26 +102,26 @@ class ChatService:
 
 
     @staticmethod
-    def update_group(chat_type, group_name, description, image, members):
-        group = ChatService.get_chat(chat_type, group_name)
+    def update_group(group, group_name, description, image, members):
+        try:
+            with transaction.atomic():
 
-        if not group:
-            return JsonResponse({"success": False, "error": "Chat does not exist"})
+                group.group_name = group_name
+                group.description = description
 
-        group.group_name = group_name
-        group.description = description
+                if image:
+                    group.image_url = image
 
-        if image:
-            group.image = image
+                if group.chat_type == "group":
+                    users = list(UserService.get_users_object(members))
+                    users.append(group.creator)
+                    group.members.set(users)
 
-        if group.chat_type == "group":
-            users = list(UserService.get_users_object(members))
-            users.append(group.creator)
-            group.members.set(users)
+                group.save()
 
-        group.save()
-
-        return JsonResponse({"success": True, "group_name":group.group_name})
+                return True
+        except IntegrityError:
+            return False
 
 
     @staticmethod
