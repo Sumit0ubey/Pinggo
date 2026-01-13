@@ -3,8 +3,9 @@ from django.template.loader import render_to_string
 from channels.db import database_sync_to_async
 import json
 
-from .models import ChatGroup, GroupMessage
 from .presence import Presence
+from .service.chat_service import ChatService
+from .service.message_service import MessageService
 
 
 class ChatroomConsumer(AsyncWebsocketConsumer):
@@ -15,9 +16,7 @@ class ChatroomConsumer(AsyncWebsocketConsumer):
         self.chatroom_name = self.scope["url_route"]["kwargs"]["chatroom_name"]
 
 
-        self.chatroom = await database_sync_to_async(
-            ChatGroup.objects.get
-        )(group_name=self.chatroom_name)
+        self.chatroom = await ChatService.async_get_chat(self.chatroom_name)
 
         await self.channel_layer.group_add(
             f"{self.chatroom_type}-{self.chatroom_name}",
@@ -34,10 +33,10 @@ class ChatroomConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         body = data["message"]
 
-        message = await database_sync_to_async(GroupMessage.objects.create)(
-            message=body,
-            author=self.user,
+        message = await MessageService.create_message(
+            user=self.user,
             group=self.chatroom,
+            message=body,
         )
 
         await self.channel_layer.group_send(
@@ -50,9 +49,9 @@ class ChatroomConsumer(AsyncWebsocketConsumer):
 
 
     async def message_handler(self, event):
-        message = await database_sync_to_async(
-            GroupMessage.objects.select_related("author").get
-        )(id=event["message_id"])
+        message = await MessageService.get_message(
+            message_id=event["message_id"]
+        )
 
         html = await database_sync_to_async(render_to_string)(
             "chats/partials/chat_message_p.html",

@@ -13,7 +13,7 @@
             <div class="mt-8">{{ profile.info|linebreaksbr }}</div>
         {% endif %}
         {% if profile.user != user %}
-            <a class="button" href="{% url 'create_private_chat' profile.user.username %}">Chat with me</a>
+            <a class="button mt-2" href="{% url 'create_private_chat' profile.user.username %}">Chat with me</a>
         {% endif %}
     </div>
 </div>

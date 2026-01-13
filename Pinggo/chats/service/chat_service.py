@@ -19,7 +19,7 @@ class ChatService:
 
 
     @staticmethod
-    async def async_get_chat(chat_name):
+    async def async_get_chat(chat_name): # DON'T TOUCH IT, IT WORKS WITH CONSUMER
         return await database_sync_to_async(ChatGroup.objects.get)(
             group_name=chat_name
         )

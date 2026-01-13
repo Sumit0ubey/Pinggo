@@ -5,6 +5,15 @@ from chats.models import GroupMessage
 
 class MessageService:
 
+    """
+    # don't touch it, it works with consumer.
+
+    Before making any changes, please check does it break consumer.
+    Remember 'Me'
+
+    # DON'T TOUCH IT, IT WORKS WITH CONSUMER
+    """
+
     @staticmethod
     async def get_message(message_id):
         return await database_sync_to_async(GroupMessage.objects.select_related("author").get)(
