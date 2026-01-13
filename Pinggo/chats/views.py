@@ -4,7 +4,6 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404
 from django.shortcuts import render, get_object_or_404, redirect
@@ -13,8 +12,9 @@ from django.views.decorators.http import require_POST
 from users.services.user_service import UserService
 
 from .forms import ChatMessageCreateForm
-from .models import ChatGroup, GroupMessage
+from .models import ChatGroup
 from .service.chat_service import ChatService
+from .service.message_service import MessageService
 from .utility import private_room_name
 
 
@@ -217,9 +217,9 @@ def upload_file(request, chat_type=None, chat_name=None):
         messages.error(request, "Missing file data")
         return HttpResponseBadRequest("Missing file data")
 
-    message = GroupMessage.objects.create(
+    message = MessageService.create_message_upload(
+        user=request.user,
         group=chat,
-        author=request.user,
         message=file_message,
         file_url=file_url,
         file_type=file_type,

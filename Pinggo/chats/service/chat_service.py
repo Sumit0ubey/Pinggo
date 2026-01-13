@@ -1,12 +1,11 @@
+from channels.db import database_sync_to_async
 from django.db import transaction, IntegrityError
-from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
 from users.services.user_service import UserService
 
 from ..models import ChatGroup
-from ..utility import private_room_name
 
 
 class ChatService:
@@ -20,15 +19,25 @@ class ChatService:
 
 
     @staticmethod
-    def get_groups(user, chat_type):
-        if chat_type == "global":
-            return ChatGroup.objects.filter(chat_type="global")
-        elif chat_type == "group":
-            return ChatGroup.objects.filter(chat_type="group", members=user)
-        elif chat_type == "private":
-            return ChatGroup.objects.filter(chat_type="private", members=user).prefetch_related("members")
+    async def async_get_chat(chat_name):
+        return await database_sync_to_async(ChatGroup.objects.get)(
+            group_name=chat_name
+        )
 
-        return None
+
+    @staticmethod
+    def get_global_chats():
+        return ChatGroup.objects.filter(chat_type="global")
+
+
+    @staticmethod
+    def get_group_chats(user):
+        return ChatGroup.objects.filter(chat_type="group", members=user)
+
+
+    @staticmethod
+    def get_private_chats(user):
+        return ChatGroup.objects.filter(chat_type="private", members=user).prefetch_related("members")
 
 
     @staticmethod
