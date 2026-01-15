@@ -1,4 +1,4 @@
 For Testing:
     python manage.py runserver
 For Production:
-    daphne -b 0.0.0.0 -p 8000 core.asgi:application   OR   daphne core.asgi:application
+    daphne -b 0.0.0.0 -p 8000 Pinggo.asgi:application   OR   daphne Pinggo.asgi:application
