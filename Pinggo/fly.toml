@@ -12,5 +12,5 @@ primary_region = "bom"
   min_machines_running = 1
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"
+  size = "shared-cpu-4x"
+  memory = "2gb"

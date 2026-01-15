@@ -29,6 +29,10 @@ SECRET_KEY = getenv('SECRET_KEY', 'django-insecure-u8syly%1')
 DEBUG = getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.fly.dev",
+]
+
 # Application definition
 
 INSTALLED_APPS = [
