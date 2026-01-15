@@ -1,17 +1,16 @@
-from django.contrib.auth import logout
-from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from django.contrib.auth import logout
 
-from ..exception import ProfileDoesNotExist
 from ..models import Profile
-
+from ..exception import ProfileDoesNotExist
 
 
 class UserService:
 
     @staticmethod
     def get_user_object(username) -> User:
-        return  User.objects.filter(username=username).first()
+        return User.objects.filter(username=username).first()
 
     @staticmethod
     def get_user_object_404(username) -> User:
@@ -36,7 +35,9 @@ class UserService:
     @staticmethod
     def get_user_details(user):
         try:
-            return user.profile
+            user = User.objects.select_related("profile").get(id=user.id)
+            info = user.profile
+            return info
         except Profile.DoesNotExist:
             raise ProfileDoesNotExist("User does not exist")
 

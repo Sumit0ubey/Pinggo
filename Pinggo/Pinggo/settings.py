@@ -101,7 +101,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('localhost', 6379)],
+            "hosts": [getenv('UPSTASH_REDIS_URL'), ('localhost', 6379)],
         }
     }
 }
@@ -109,7 +109,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'LOCATION': getenv('UPSTASH_REDIS_URL', 'redis://127.0.0.1:6379/1'),
         'OPTIONS': {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -120,10 +120,23 @@ CACHES = {
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# For Testing
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': getenv("DATABASE_HOST", "localhost"),
+        'NAME': getenv("DATABASE_NAME", "pinggo"),
+        'USER': getenv("DATABASE_NAME", 'postgres'),
+        'PASSWORD': getenv("DATABASE_USER", ""),
+        "PORT": getenv("DATABASE_PORT", 5432),
     }
 }
 
@@ -211,7 +224,8 @@ ACCOUNT_SIGNUP_FIELDS = [
 ]
 
 ACCOUNT_LOGIN_METHODS = {'username'}
-ACCOUNT_EMAIL_SUBJECT_PREFIX = f"[{getenv('APP_NAME')}] "
+DEFAULT_FROM_EMAIL = f"{getenv('APP_NAME')} {getenv('DEFAULT_FROM_EMAIL')}"
+ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 
 
 EMAIL_HOST_USER = getenv('EMAIL_HOST_USER')
