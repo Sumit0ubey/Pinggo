@@ -1,21 +1,19 @@
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.core.exceptions import PermissionDenied
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from django.contrib import messages
 import json
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, Http404
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.http import require_POST
-
-from users.services.user_service import UserService
-
-from .forms import ChatMessageCreateForm
 from .models import ChatGroup
+from .utility import private_room_name
+from .forms import ChatMessageCreateForm
 from .service.chat_service import ChatService
 from .service.message_service import MessageService
-from .utility import private_room_name
+from users.services.user_service import UserService
 
 
 @login_required(login_url="account_login")
@@ -44,29 +42,11 @@ def chat_view(request, chat_type=None, chat_name=None):
     members = []
 
     if chat_type == "global":
-        groups = ChatGroup.objects.filter(chat_type="global")
-
+        groups = ChatService.get_global_chats()
     elif chat_type == "group":
-        groups = ChatGroup.objects.filter(
-            chat_type="group",
-            members=request.user
-        )
-
+        groups = ChatService.get_group_chats(request.user)
     elif chat_type == "private":
-        private_chats = (
-            ChatGroup.objects
-            .filter(chat_type="private", members=request.user)
-            .prefetch_related("members")
-        )
-
-        private_chats = [
-            {
-                "group": group,
-                "other_user": group.members.exclude(id=request.user.id).first()
-            }
-            for group in private_chats
-        ]
-
+        private_chats = ChatService.get_private_chats(request.user)
     elif chat_type is not None:
         raise PermissionDenied("Invalid chat type")
 
@@ -81,17 +61,13 @@ def chat_view(request, chat_type=None, chat_name=None):
             raise PermissionDenied("Invalid access")
 
         members = list(
-            chat_group.members.values_list("username", flat=True)
+            ChatService.get_members_username(chat_group)
         )
 
-        chat_messages = (
-            chat_group.chat_messages
-            .select_related("author")
-            .order_by("created_at")[:60]
-        )
+        chat_messages = ChatService.get_chat_messages(chat_group)
 
         if chat_group.chat_type == "private":
-            other_user = chat_group.members.exclude(id=request.user.id).first()
+            other_user = ChatService.get_other_member(request.user.id, chat_group)
             active_group = chat_group.display_name_for(request.user)
         else:
             active_group = chat_group.display_name

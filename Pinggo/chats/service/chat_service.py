@@ -37,7 +37,18 @@ class ChatService:
 
     @staticmethod
     def get_private_chats(user):
-        return ChatGroup.objects.filter(chat_type="private", members=user).prefetch_related("members")
+        private_chats = ChatGroup.objects.filter(
+            chat_type="private",
+            members=user
+        ).prefetch_related("members")
+
+        return [
+            {
+                "group":private_group,
+                "other_user":ChatService.get_other_member(user.id, private_group)
+            }
+            for private_group in private_chats
+        ]
 
 
     @staticmethod
@@ -79,7 +90,7 @@ class ChatService:
 
     @staticmethod
     def get_chat_messages(chat):
-        return chat.chat_messages.select_related("author").order_by("-created_at")[:60]
+        return chat.chat_messages.select_related("author").order_by("created_at")[:60]
 
 
     @staticmethod
