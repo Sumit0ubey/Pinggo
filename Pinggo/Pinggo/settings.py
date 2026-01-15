@@ -27,7 +27,7 @@ SECRET_KEY = getenv('SECRET_KEY', 'django-insecure-u8syly%1')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.fly.dev', '*']
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.fly.dev",
