@@ -351,11 +351,17 @@ erDiagram
 ```
 Pinggo/
 │
+├── chats/                # Chat related files and configuration
+├── home/                 # Simple app for redirection
+├── MailApix/             # app for configuring MailAPIX API as an email backed
 ├── Pinggo/               # Django project core
+├── static/               # Static files folder
+├── templates/            # Html files folder
+├── users/                # app for user authentication and authorization
+├── __init__.py
 ├── manage.py
-├── requirements.txt
-├── .env.example
-└── apps/                 # Chat apps & modules
+├── .env
+└──  requirements.txt                 
 ```
 
 ---
