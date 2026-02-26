@@ -1,4 +1,4 @@
-from allauth.account.models import EmailAddress
+from allauth.account.models import EmailAddress, EmailConfirmation
 from django.contrib.auth.models import User
 from django.db import transaction
 

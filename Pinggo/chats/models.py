@@ -153,7 +153,7 @@ class GroupMessage(models.Model):
         return f'{self.author}: {self.message}'
 
     def clean(self):
-        if not self.group.members.filter(id=self.author_id).exists():
+        if self.group.chat_type != "global" and not self.group.members.filter(id=self.author_id).exists():
             raise ValidationError("Author is not a member of this group.")
 
     def save(self, *args, **kwargs):

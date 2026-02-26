@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'MailApix',
     'home',
     'users',
     'chats',
@@ -105,7 +106,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [getenv('UPSTASH_REDIS_URL'), ('localhost', 6379)],
+            "hosts": [getenv('UPSTASH_REDIS_URL'), ('127.0.0.1', 6379)],
         }
     }
 }
@@ -163,6 +164,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SITE_ID = 1
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -188,7 +190,6 @@ STORAGES = {
     },
 }
 
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -207,9 +208,6 @@ CLOUDINARY_GROUP_PRESET = getenv("CLOUDINARY_GROUP_PRESET")
 CLOUDINARY_CHAT_PRESET = getenv("CLOUDINARY_CHAT_PRESET")
 
 # if DEBUG:
-#     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# if DEBUG:
 MEDIA_URL = '/media/'
 # MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -218,7 +216,7 @@ LOGIN_REDIRECT_URL = '/'
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_BACKEND = 'MailApix.email_backends.MailAPIXBackend'
 
 ACCOUNT_SIGNUP_FIELDS = [
     'username*',
@@ -228,13 +226,13 @@ ACCOUNT_SIGNUP_FIELDS = [
 ]
 
 ACCOUNT_LOGIN_METHODS = {'username'}
-DEFAULT_FROM_EMAIL = f"{getenv('APP_NAME')} {getenv('DEFAULT_FROM_EMAIL')}"
+DEFAULT_FROM_EMAIL = f"{getenv('EMAIL_HOST_USER')}"
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
-
 
 EMAIL_HOST_USER = getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = getenv('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_PORT = int(getenv('EMAIL_PORT', 587))
-EMAIL_HOST = getenv('EMAIL_HOST')
+
+MAILAPIX_BASE_URL = getenv("MAILAPIX_API_URL")
+MAILAPIX_TOKEN = getenv("MAILAPIX_EMAIL_TOKEN")
+
 
