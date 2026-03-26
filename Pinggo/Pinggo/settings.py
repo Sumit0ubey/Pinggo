@@ -30,7 +30,7 @@ DEBUG = getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 CSRF_TRUSTED_ORIGINS = [
-    getenv("CURRENT_IP_DOMAIN_WEBSITE"),
+    '*',  # in production use specific domain/IP (Highly Recommended)
 ]
 
 # Application definition
@@ -139,8 +139,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': getenv("DATABASE_HOST", "localhost"),
         'NAME': getenv("DATABASE_NAME", "pinggo"),
-        'USER': getenv("DATABASE_NAME", 'postgres'),
-        'PASSWORD': getenv("DATABASE_USER", ""),
+        'USER': getenv("DATABASE_USER", 'postgres'),
+        'PASSWORD': getenv("DATABASE_PASSWORD", ""),
         "PORT": getenv("DATABASE_PORT", 5432),
     }
 }

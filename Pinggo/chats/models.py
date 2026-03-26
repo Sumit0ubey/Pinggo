@@ -41,8 +41,9 @@ class ChatGroup(models.Model):
             if self.members.count() != 2:
                 raise ValidationError("Private chat must have exactly 2 members.")
 
-        if self.chat_type == "global" and self.members.exists():
-            raise ValidationError("Global chat should not have members.")
+        if self.chat_type == "global":
+            if self.pk and self.members.exists():
+                raise ValidationError("Global chat should not have members.")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
