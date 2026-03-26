@@ -1,0 +1,44 @@
+version: "5.1"
+
+services:
+  db:
+    image: postgres:15
+    container_name: pinggo_db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env.docker
+
+  redis:
+    image: redis:7
+    container_name: pinggo_redis
+    restart: always
+
+  web:
+    image: dubeysumit/pinggo:latest
+    container_name: pinggo_web
+    volumes:
+      - static_volume:/app/staticfiles
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  nginx:
+    image: nginx:1.25
+    container_name: pinggo_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/app/staticfiles
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web
+    restart: always
+
+volumes:
+  postgres_data:
+  static_volume:

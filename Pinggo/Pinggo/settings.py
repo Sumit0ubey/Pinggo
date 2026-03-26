@@ -106,7 +106,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [getenv('UPSTASH_REDIS_URL'), ('127.0.0.1', 6379)],
+            "hosts": [getenv('REDIS_URL'), ('127.0.0.1', 6379)],
         }
     }
 }
@@ -114,7 +114,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': getenv('UPSTASH_REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        'LOCATION': getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
         'OPTIONS': {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },

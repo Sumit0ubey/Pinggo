@@ -84,7 +84,7 @@
 
 It’s built like a deployable product: **ASGI-first**, **Redis channel layer**, **PostgreSQL storage**, and a modern UI stack for responsive interactions.
 
-**Live demo:** http://143.244.132.69/  (Might not work, currently in update)
+**Live:** http://143.244.132.69/  
 
 ---
 
