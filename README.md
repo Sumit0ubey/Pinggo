@@ -64,6 +64,7 @@
 - [📦 Project Structure](#-project-structure)
 - [⚙️ Getting Started](#️-getting-started)
 - [🌩 Environment Variables](#-environment-variables)
+- [🐳 Docker Usage](#-docker-usage)
 - [🚢 Production Deployment](#-production-deployment)
 - [🧪 Security & Best Practices](#-security--best-practices)
 - [🗺 Roadmap](#-roadmap)
@@ -425,6 +426,125 @@ CLOUDINARY_API_SECRET=
 CLOUDINARY_USER_AVATAR=
 CLOUDINARY_GROUP_AVATAR=
 CLOUDINARY_CHAT_FILES=
+```
+
+---
+
+## 🐳 Docker Usage
+
+If you want to run Pinggo directly with containers, use the compose setup in `Pinggo/docker-compose.yml`.
+
+### 1) Prepare Docker environment
+
+In the `Pinggo/` directory, create `.env` from `Pinggo/.envDockerExample`, then update all required values before starting containers.
+
+```bash
+cd Pinggo
+
+# Linux/macOS
+cp .envDockerExample .env
+
+# Windows PowerShell
+Copy-Item .envDockerExample .env
+```
+
+### 2) Understand current compose setup
+
+The current `Pinggo/docker-compose.yml` starts four services:
+
+- `db` -> PostgreSQL 15 (persistent data in `postgres_data`)
+- `redis` -> Redis 7 (persistent data in `redis_data`)
+- `web` -> Pinggo app container (currently uses image `dubeysumit/pinggo:v.1.5`)
+- `nginx` -> reverse proxy on port `80`
+
+So right now, by default, your app runs from the already published image in compose.
+
+### 3) Run directly with current compose file
+
+```bash
+cd Pinggo
+docker compose up --build
+```
+
+If your system uses the legacy command, you can use:
+
+```bash
+docker-compose up --build
+```
+
+### 4) Build your own image using Dockerfile
+
+`Pinggo/Dockerfile` is already set up for production-style startup (`collectstatic`, `migrate`, then Daphne).
+To build your own image from this Dockerfile:
+
+```bash
+cd Pinggo
+docker build -t your-dockerhub-username/pinggo:latest .
+```
+
+Optional push to your own registry repo:
+
+```bash
+docker login
+docker push your-dockerhub-username/pinggo:latest
+```
+
+### 5) Use your repo image in compose (replace current one)
+
+In `Pinggo/docker-compose.yml`, update `services.web.image`.
+
+Current:
+
+```yaml
+web:
+  image: dubeysumit/pinggo:v.1.5
+```
+
+Replace with your image:
+
+```yaml
+web:
+  image: your-dockerhub-username/pinggo:latest
+```
+
+Then run compose again:
+
+```bash
+cd Pinggo
+docker compose up -d
+```
+
+### 6) Build from Dockerfile directly in compose (alternative)
+
+If you do not want to pull any registry image, you can make compose build locally from `Pinggo/Dockerfile`.
+
+Example `web` service:
+
+```yaml
+web:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: pinggo:local
+```
+
+Then start:
+
+```bash
+cd Pinggo
+docker compose up --build
+```
+
+### 7) Stop or run in background
+
+```bash
+cd Pinggo
+
+# Stop containers
+docker compose down
+
+# Run in detached mode
+docker compose up -d
 ```
 
 ---
