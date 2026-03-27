@@ -30,7 +30,8 @@ DEBUG = getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 CSRF_TRUSTED_ORIGINS = [
-    '*',  # in production use specific domain/IP (Highly Recommended)
+    "http://*",
+    "https://*",  # in production use specific domain/IP (Highly Recommended)
 ]
 
 # Application definition
