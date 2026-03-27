@@ -107,7 +107,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [getenv('REDIS_URL'), ('127.0.0.1', 6379)],
+            "hosts": [getenv('REDIS_URL', 'redis://redis:6379')],
         }
     }
 }
@@ -138,7 +138,7 @@ CACHES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': getenv("DATABASE_HOST", "localhost"),
+        'HOST': getenv("DATABASE_HOST", "db"),
         'NAME': getenv("DATABASE_NAME", "pinggo"),
         'USER': getenv("DATABASE_USER", 'postgres'),
         'PASSWORD': getenv("DATABASE_PASSWORD", ""),
