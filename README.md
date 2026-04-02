@@ -91,11 +91,11 @@ It’s built like a deployable product: **ASGI-first**, **Redis channel layer**,
 
 ## 🚀 Why Pinggo?
 
-- **Realtime-first**: WebSocket messaging using Django Channels
-- **Scales horizontally**: Redis/Upstash for the channel layer fan-out
-- **Production-ready**: ASGI + Daphne/Uvicorn compatible deployment
-- **Cloud media**: Cloudinary for avatars and attachments
-- **Modern UI**: Tailwind + HTMX + Alpine.js for app-like experience
+- **Realtime-first**: WebSocket messaging using Django Channels.
+- **Scales horizontally**: Redis/Upstash for the channel layer fan-out.
+- **Production-ready**: ASGI + Daphne/Uvicorn compatible deployment.
+- **Cloud media**: Cloudinary for avatars and attachments.
+- **Modern UI**: Tailwind + HTMX + Alpine.js for app-like experience.
 
 ---
 
